@@ -1,0 +1,39 @@
+version: '3'
+services:
+  bitcoind:
+    build:
+      context: ./bitcoind
+    ports:
+      - "18332:18332" # Expose the RPC port for testnet
+    volumes:
+      - bitcoind-data:/root/.bitcoin
+
+  lnd:
+    build:
+      context: ./lnd
+    ports:
+      - "9735:9735"   # P2P port
+      - "10009:10009" # gRPC port
+    volumes:
+      - lnd-data:/root/.lnd
+    depends_on:
+      - bitcoind
+
+  backend-api:
+    build:
+      context: ./backend-api
+    ports:
+      - "8080:8080" # Expose the API port
+    depends_on:
+      - bitcoind
+      - lnd
+
+volumes:
+  bitcoind-data:
+  lnd-data:
+
+# docker-compose up -d
+
+# docker-compose logs -f bitcoind
+# docker-compose logs -f lnd
+

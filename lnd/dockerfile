@@ -1,0 +1,32 @@
+# Use the official Golang image compatible with ARM64
+FROM golang:1.16-buster
+
+# Install Git and other necessary tools
+RUN apt-get update && apt-get install -y \
+    git \
+    make
+
+# Clone the LND repository
+RUN git clone https://github.com/lightningnetwork/lnd /go/src/github.com/lightningnetwork/lnd
+
+# Checkout a specific stable version
+WORKDIR /go/src/github.com/lightningnetwork/lnd
+RUN git checkout v0.14.1-beta
+
+# Update Go modules
+RUN go mod tidy
+
+# Build LND
+RUN make && make install
+
+# Create LND data directory
+RUN mkdir -p /root/.lnd
+
+# Copy the lnd.conf file from your project into the container
+COPY lnd.conf /root/.lnd/lnd.conf
+
+# Expose LND ports (gRPC, REST, P2P)
+EXPOSE 10009 8080 9735
+
+# Start LND
+ENTRYPOINT ["lnd"]
